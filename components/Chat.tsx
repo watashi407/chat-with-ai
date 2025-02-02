@@ -5,7 +5,6 @@ import { useChat } from "ai/react";
 import { Send, Bot, User, Clipboard, Check } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useTheme } from "./theme/Theme-Provider";
 import { ThemeSelect } from "@/components/theme/Toggle-theme";
 
 type MessageType = {
