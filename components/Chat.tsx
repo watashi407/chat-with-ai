@@ -6,11 +6,10 @@ import { Send, Bot, User, Clipboard, Check } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-// Message component with copy functionality for AI responses only
 const Message = ({ message }: { message: any }) => {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
-  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)```/; // Detects code blocks
+  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)```/;
   const match = message.content.match(codeBlockRegex);
 
   const handleCopy = async () => {
