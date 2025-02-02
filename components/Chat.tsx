@@ -8,7 +8,7 @@ import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type MessageType = {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system" | "data"; // Include system and data
   content: string;
 };
 
@@ -85,9 +85,11 @@ export default function Chat() {
 
       {/* Messages Container */}
       <main className="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-2xl mx-auto">
-        {messages.map((m) => (
-          <Message key={m.id} message={m} />
-        ))}
+        {messages
+          .filter((m) => m.role === "user" || m.role === "assistant") // Only include allowed roles
+          .map((m) => (
+            <Message key={m.id} message={m} />
+          ))}
         <div ref={messagesEndRef} />
       </main>
 
