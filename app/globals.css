@@ -3,19 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: 79 70 229;
+  --color-secondary: 99 102 241;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --color-primary: 165 180 252;
+  --color-secondary: 147 197 253;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-200;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
+}
+
+
+/* Custom icon transitions */
+.lucide-icon {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Dark mode icon adjustments */
+.dark .lucide-icon {
+  @apply text-white/90;
 }

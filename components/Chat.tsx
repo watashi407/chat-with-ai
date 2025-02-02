@@ -5,6 +5,8 @@ import { useChat } from "ai/react";
 import { Send, Bot, User, Clipboard, Check } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useTheme } from "./theme/Theme-Provider";
+import { ThemeSelect } from "@/components/theme/Toggle-theme";
 
 type MessageType = {
   id: string;
@@ -77,10 +79,18 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-zinc-900">
       {/* Header */}
-      <header className="py-4 px-6 bg-white dark:bg-zinc-800 border-b dark:border-zinc-700 shadow-sm">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Bot className="w-5 h-5 text-blue-500" /> Watashi AI
-        </h1>
+      <header className="py-4 px-6 bg-white dark:bg-zinc-800 border-b dark:border-zinc-700 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bot className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Watashi AI
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-4 ">
+          {/* Add other right-side icons here if needed */}
+          <ThemeSelect />
+        </div>
       </header>
 
       {/* Messages Container */}
