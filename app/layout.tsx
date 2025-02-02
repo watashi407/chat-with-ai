@@ -13,7 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Its alvin / watashi AI text-generate project",
+  title:
+    "Alvin / Watashi AI - Advanced Text Generation Project for SEO Optimizationt",
   description:
     "Its a simple project that can help student knowing things and make there curiosity emplode",
 };
