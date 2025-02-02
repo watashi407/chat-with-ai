@@ -1,8 +1,64 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useChat } from "ai/react";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Clipboard, Check } from "lucide-react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+// Message component with copy functionality for AI responses only
+const Message = ({ message }: { message: any }) => {
+  const [copied, setCopied] = useState(false);
+  const isUser = message.role === "user";
+  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)```/; // Detects code blocks
+  const match = message.content.match(codeBlockRegex);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      {!isUser && <Bot className="w-6 h-6 text-blue-500 mr-2" />}
+
+      <div className="relative px-4 py-3 rounded-lg shadow-sm max-w-[80%] text-sm bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-gray-100">
+        {/* Copy Button (Only for AI messages) */}
+        {!isUser && (
+          <button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 p-1 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Clipboard className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            )}
+          </button>
+        )}
+
+        {/* Render Code with Syntax Highlighting */}
+        {match ? (
+          <SyntaxHighlighter
+            language={match[1] || "tsx"}
+            style={solarizedlight}
+          >
+            {match[2].trim()}
+          </SyntaxHighlighter>
+        ) : (
+          <p>{message.content}</p>
+        )}
+      </div>
+
+      {isUser && <User className="w-6 h-6 text-blue-600 ml-2" />}
+    </div>
+  );
+};
 
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat();
@@ -24,28 +80,7 @@ export default function Chat() {
       {/* Messages Container */}
       <main className="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-2xl mx-auto">
         {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex ${
-              m.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            {m.role !== "user" && (
-              <Bot className="w-6 h-6 text-blue-500 mr-2" />
-            )}
-            <div
-              className={`px-4 py-3 rounded-lg shadow-sm max-w-[80%] text-sm ${
-                m.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-              }`}
-            >
-              {m.content}
-            </div>
-            {m.role === "user" && (
-              <User className="w-6 h-6 text-blue-600 ml-2" />
-            )}
-          </div>
+          <Message key={m.id} message={m} />
         ))}
         <div ref={messagesEndRef} />
       </main>
