@@ -12,8 +12,11 @@ const RequestSchema = z.object({
   ),
 });
 
+// Keywords to identify Alvin-related queries
+const ALVIN_KEYWORDS = ["alvin", "alvin gultiano", "watashi"];
+
 export const maxDuration = 30;
-export const runtime = "edge"; // Optional: Use Edge runtime for better performance
+export const runtime = "edge";
 
 export async function POST(req: Request) {
   try {
@@ -22,19 +25,11 @@ export async function POST(req: Request) {
     const parsedBody = RequestSchema.safeParse(body);
 
     if (!parsedBody.success) {
-      return new Response(JSON.stringify({ error: "Invalid request format" }), {
-        status: 400,
-      });
-    }
-
-    // Check if any message contains 'alvin' (case insensitive)
-    const containsAlvin = parsedBody.data.messages.some((msg) =>
-      msg.content.toLowerCase().includes("alvin")
-    );
-
-    if (!containsAlvin) {
       return new Response(
-        JSON.stringify({ error: "Ask only for alvin info" }),
+        JSON.stringify({
+          error: "Invalid request format",
+          details: parsedBody.error.issues,
+        }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -42,38 +37,74 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get all user messages
+    const userMessages = parsedBody.data.messages
+      .filter((msg) => msg.role === "user")
+      .map((msg) => msg.content.toLowerCase());
+
+    // Check if the query is Alvin-related
+    const isAlvinRelated = userMessages.some((message) =>
+      ALVIN_KEYWORDS.some((keyword) => message.includes(keyword))
+    );
+
     // Initialize Anthropic client
     const model = anthropic("claude-3-haiku-20240307");
 
-    // Define system prompt
-    const systemPrompt = `You are an expert research assistant. Here is a document you will answer questions about:
+    // Define system prompt based on context
+    const systemPrompt = isAlvinRelated
+      ? // Alvin-specific prompt
+        `You are a helpful AI assistant that can answer any question, but you have special knowledge about Alvin Gultiano (Watashi).
 
-<doc>
-[Full text of [Matterport SEC filing 10-K 2023](https://investors.matterport.com/node/9501/html), not pasted here for brevity]
-</doc>
+When answering questions about Alvin, use this information:
 
-First, find the quotes from the document that are most relevant to answering the question, and then print them in numbered order. Quotes should be relatively short.
+👨‍💻 Who is Alvin?
+A passionate Full-Stack Developer who loves building web applications
+Known as "Watashi" in the developer community
+Enthusiastic about modern web technologies and best practices
 
-If there are no relevant quotes, write "No relevant quotes" instead.
+🚀 Current Role & Aspirations:
+- Full-Stack Developer
+- Passionate about building scalable web applications
+- Dreams of creating impactful SaaS solutions
 
-Then, answer the question, starting with "Answer:". Do not include or reference quoted content verbatim in the answer. Don't say "According to Quote [1]" when answering. Instead make references to quotes relevant to each section of the answer solely by adding their bracketed numbers at the end of relevant sentences.
+🛠️ Tech Stack:
+Frontend:
+- ⚛️ React with TypeScript
+- 🔄 React Query (TanStack)
+- ⚡ Next.js 15
+Backend:
+- 🔥 Supabase
+- 🍃 MongoDB
+- 💎 Prisma
+Dev Tools:
+- 🔧 Zoho (previous)
+- ⚡ Supabase (current)
 
-Thus, the format of your overall response should look like what's shown between the <example></example> tags. Make sure to follow the formatting and spacing exactly.
-<example>
-Quotes:
-[1] "Company X reported revenue of $12 million in 2021."
-[2] "Almost 90% of revenue came from widget sales, with gadget sales making up the remaining 10%."
+📌 Current Projects:
+- 🏗️ Building a SaaS project using Supabase
+- 🔄 Migrated from Neon to Supabase for better storage support
+- 🎯 Focusing on unified service management
 
-Answer:
-Company X earned $12 million. [1] Almost 90% of it was from widget sales. [2]
-</example>
+🎯 Professional Goals:
+- 📈 Mastering Full-Stack Development
+- 🧠 Learning essential design patterns
+- ✨ Enhancing code quality and performance
+- 🚀 Improving API handling and UI states
 
-If the question cannot be answered by the document, say so.`;
+💡 Past Experience:
+- 📝 Developed client communication systems with Zoho Forms
+- 🎮 Created a mobile-first gaming website with advanced features
+- 🔍 Implemented search, filtering, and favorites functionality
+
+For Alvin-related questions, use emojis and maintain an enthusiastic tone.
+For other questions, respond normally as a helpful AI assistant.`
+      : // General prompt
+        `You are a helpful AI assistant that can provide information and answer questions on any topic. Aim to be helpful, informative, and accurate in your responses.`;
 
     // Stream the response
     const result = await streamText({
       model: model,
-      temperature: 0,
+      temperature: 0.7,
       system: systemPrompt,
       messages: parsedBody.data.messages,
     });
@@ -81,9 +112,16 @@ If the question cannot be answered by the document, say so.`;
     return result.toDataStreamResponse();
   } catch (error) {
     console.error("Error processing request:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
